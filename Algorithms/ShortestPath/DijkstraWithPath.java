@@ -1,6 +1,8 @@
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Scanner;
 
 /**
@@ -13,22 +15,27 @@ import java.util.Scanner;
  * 
  * 
  */
-public class Dijkstra {
+public class DijkstraWithPath {
 
     static int INF = 1000000;
     public static void main(String[] args) throws FileNotFoundException {
         
         int[][] graph = readIntegerFromFile("graph.txt");
+        int numberFrom = 1;
+        int numberTo = 10;
+
 
         int[] distances = new int[200];
         boolean[] isFound = new boolean[200];
+        HashMap<Integer,Integer> oneBeforeThatPoint = new HashMap<Integer,Integer>();
 
-        for(int i = 1; i < distances.length; i++){
+        for(int i = 0; i < distances.length; i++){
             distances[i] = INF;
         }
 
-        isFound[0] = true;
-        distances[0] = 0;
+        isFound[numberFrom - 1] = true;
+        distances[numberFrom - 1] = 0;
+        oneBeforeThatPoint.put(numberFrom, numberFrom);
 
 
 
@@ -36,39 +43,61 @@ public class Dijkstra {
             int[] minArr = findMin(graph, distances, isFound);
             isFound[minArr[0]] = true;
             distances[minArr[0]] = minArr[1];
+            oneBeforeThatPoint.put(minArr[0] + 1, minArr[2]);
             
         }
 
+        printResults(distances,numberFrom,numberTo,oneBeforeThatPoint);
 
-        printResults(distances);
-
-
-
-    
     }
 
-    private static void printResults(int[] distances) {
-        for(int i = 0; i < distances.length; i++){
-            System.out.println("Distances from 0 to " + i + " is : " + distances[i]);
+    private static void printResults(int[] distances, int numberFrom, int numberTo, HashMap<Integer,Integer> oneBeforeThatPoint) {
+        System.out.println("Distances from " +  numberFrom + " to "  + numberTo + " is : " + distances[numberTo - 1]);
+        
+        int vertex = numberTo;
+        ArrayList<Integer> path = new ArrayList<>();
+        path.add(numberTo);
+        while(vertex != numberFrom){
+            vertex = oneBeforeThatPoint.get(vertex);
+            path.add(vertex);
         }
-    }
 
+        System.out.print("The path from " + numberFrom + " to " + numberTo + " is : |");
+        for(int i = path.size()-1; i > 0 ; i--){
+            System.out.print(path.get(i) + " --> ");
+        }
+        System.out.print(path.get(0) + "|");
+
+    }
+            
+
+    /**
+     * 
+     * @param graph
+     * @param distances
+     * @param isFound
+     * @return array with length 3. First index of array is closest vertex to the current found vertices. 
+     *         Second index of array is distance to the the vertex in first index.
+     *         Third index is the vertex that come before the vertex in first index.
+     */
     public static int[] findMin(int[][] graph, int[] distances, boolean[] isFound){
 
-        int[] res = {0,INF};
+        int[] res = {0,INF,0};
+        int minComeFrom = -1;
         for(int i = 0; i < isFound.length; i++){
             if(isFound[i]){
                 for(int j = 0; j < graph[i].length; j++){
-                    if(!isFound[j] && graph[i][j] < 1000000){
-                        int[] current = {j,distances[i] + graph[i][j]};
+                    if(!isFound[j] && graph[i][j] < INF){
+                        int[] current = {j,distances[i] + graph[i][j],-1};
                         if(current[1] < res[1]){
                             res = current;
+                            minComeFrom = i + 1;
                         }
                     }
                 }
             }            
         }
-
+        res[2] = minComeFrom;
         return res;
 
     }
@@ -123,7 +152,7 @@ public class Dijkstra {
             return false;
         }
         try {
-            double d = Double.parseDouble(strNum);
+            Double.parseDouble(strNum);
         } catch (NumberFormatException nfe) {
             return false;
         }
